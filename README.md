@@ -6,3 +6,5 @@
 - Common file for import/export all the components
 - Make reussable component
 - Using TextInput from the react-native library
+
+![](http://g.recordit.co/51G0cHWJAz.gif)
