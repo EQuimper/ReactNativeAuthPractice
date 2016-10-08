@@ -1,20 +1,60 @@
 import React, { Component } from 'react';
 import { Text } from 'react-native';
 import firebase from 'firebase';
-import { Button, Card, CardSection, Input } from './common';
+import { Button, Card, CardSection, Input, Spinner } from './common';
 
 class LoginForm extends Component {
-  state = { email: '', password: '', error: '' }
+  state = {
+    email: '',
+    password: '',
+    loading: false,
+    message: {
+      error: false,
+      text: ''
+    }
+  }
 
   onButtonPress() {
     const { email, password } = this.state;
+
+    this.setState({ message: { error: false, text: '' }, loading: true });
+
     firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(() => {
+        this.setState({
+          loading: false,
+          message: { text: 'Authentication Success.' }
+        });
+      })
       .catch(() => {
         firebase.auth().createUserWithEmailAndPassword(email, password)
+          .then(() => {
+            this.setState({
+              loading: false,
+              message: { text: 'Account Created for you ;)' }
+            });
+          })
           .catch(() => {
-            this.setState({ error: 'Authentication Failed.' });
+            this.setState({
+              loading: false,
+              message: {
+                error: true,
+                text: 'Authentication Failed.'
+              }
+            });
           });
       });
+  }
+
+  renderButton() {
+    if (this.state.loading) {
+      return <Spinner size="small" />;
+    }
+    return (
+      <Button onPress={this.onButtonPress.bind(this)}>
+        Log In
+      </Button>
+    );
   }
 
   render() {
@@ -40,14 +80,18 @@ class LoginForm extends Component {
           />
         </CardSection>
 
-        <Text style={styles.errorTextStyle}>
-          {this.state.error}
+        <Text
+          style={
+            this.state.message.error ?
+            styles.errorTextStyle :
+            styles.successTextStyle
+          }
+        >
+          {this.state.message.text}
         </Text>
 
         <CardSection>
-          <Button onPress={this.onButtonPress.bind(this)}>
-            Log In
-          </Button>
+          {this.renderButton()}
         </CardSection>
 
       </Card>
@@ -60,6 +104,11 @@ const styles = {
     fontSize: 20,
     alignSelf: 'center',
     color: 'red'
+  },
+  successTextStyle: {
+    fontSize: 20,
+    alignSelf: 'center',
+    color: 'green'
   }
 };
 
